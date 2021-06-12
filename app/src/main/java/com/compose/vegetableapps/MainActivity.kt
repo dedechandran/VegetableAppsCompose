@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -21,11 +22,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,38 +49,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
-            val toolbarTitle = remember {
-                mutableStateOf("")
-            }
             val actions = remember {
                 Action(navController = navController)
             }
-            val isParent = remember {
-                mutableStateOf(false)
-            }
             VegetableAppsTheme {
-                Scaffold(
-                    topBar = {
-
-                        VegetableAppBar(
-                            isUpButtonVisible = !isParent.value,
-                            title = toolbarTitle.value
-                        )
-                    }
-                ) { innerPadding ->
+                Scaffold { innerPadding ->
                     NavHost(
                         navController = navController,
                         startDestination = Destinations.Home,
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable(Destinations.Home) {
-                            isParent.value = true
-                            toolbarTitle.value = "Vegetable Apps"
-                            VegetableList(action = actions.navigateToDetails)
+                            Column {
+                                VegetableHeader()
+                                VegetableList(action = actions.navigateToDetails)
+                            }
                         }
                         composable(Destinations.Details) {
-                            isParent.value = false
-                            toolbarTitle.value = "Details Screen"
                             VegetableDetailsScreen()
                         }
                     }
@@ -87,30 +76,21 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun VegetableAppBar(
-    modifier: Modifier = Modifier,
-    isUpButtonVisible: Boolean,
-    title: String
-) {
-    Surface(
+fun VegetableHeader(modifier: Modifier = Modifier) {
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(56.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .background(MaterialTheme.colors.primarySurface),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if(isUpButtonVisible){
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "")
-            }
-            Text(text = title, modifier = modifier.padding(start = 8.dp))
-        }
+        Text(
+            text = "Vegetables",
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            textAlign = TextAlign.Center,
+            modifier = modifier.fillMaxWidth()
+        )
     }
-
 }
 
 @Composable
@@ -148,39 +128,52 @@ fun VegetableItem(
 ) {
     Card(
         modifier = modifier
-            .padding(vertical = 4.dp)
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(vertical = dimensionResource(id = R.dimen.spacing_1))
             .clickable(
                 onClick = {
                     onItemClick.invoke(vegetable.id)
                 },
                 role = Role.Button
             ),
-        elevation = 4.dp,
+        elevation = dimensionResource(id = R.dimen.elevation_1),
     ) {
-        Row(modifier = modifier) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(id = R.dimen.spacing_2))
+        ) {
             RoundedImage(id = vegetable.imageResId)
             Column(
                 modifier = modifier
                     .fillMaxWidth()
-                    .padding(start = 8.dp, end = 8.dp)
+                    .padding(
+                        start = dimensionResource(id = R.dimen.spacing_2),
+                        end = dimensionResource(id = R.dimen.spacing_2)
+                    )
             ) {
                 Text(
                     modifier = modifier.fillMaxWidth(),
-                    text = vegetable.name
+                    text = vegetable.name,
+                    style = MaterialTheme.typography.body2
                 )
                 Text(
                     modifier = modifier.fillMaxWidth(),
                     text = vegetable.latinName,
                     fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    style = MaterialTheme.typography.body2
                 )
                 Text(
                     modifier = modifier.fillMaxWidth(),
                     text = vegetable.description,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.body2
                 )
+                Spacer(modifier = modifier.height(dimensionResource(id = R.dimen.spacing_1)))
                 Icon(
                     imageVector = Icons.Rounded.FavoriteBorder,
                     contentDescription = "Favorite Icon",
@@ -199,7 +192,8 @@ fun RoundedImage(modifier: Modifier = Modifier, id: Int) {
         contentScale = ContentScale.Fit,
         modifier = modifier
             .size(84.dp)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(dimensionResource(id = R.dimen.spacing_2)))
+            .padding(start = dimensionResource(id = R.dimen.spacing_2))
     )
 }
 
@@ -207,4 +201,10 @@ fun RoundedImage(modifier: Modifier = Modifier, id: Int) {
 @Composable
 fun DefaultPreview() {
     VegetableItem(vegetable = DataSource.getData().first(), onItemClick = {})
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HeaderPreview() {
+    VegetableHeader()
 }
